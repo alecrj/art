@@ -1,5 +1,6 @@
+// frontend/src/pages/Dashboard/Dashboard.tsx
 import React from 'react';
-import { Container, Typography, Grid, Paper } from '@mui/material';
+import { Container, Typography, Box, Paper } from '@mui/material';
 
 const Dashboard: React.FC = () => {
   return (
@@ -8,8 +9,8 @@ const Dashboard: React.FC = () => {
         Welcome to AI Art Teacher
       </Typography>
       
-      <Grid container spacing={3}>
-        <Grid xs={12} md={6}>
+      <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
+        <Box sx={{ flex: 1 }}>
           <Paper sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6" gutterBottom>
               Upload Your First Artwork
@@ -18,8 +19,8 @@ const Dashboard: React.FC = () => {
               Get personalized feedback from our AI art instructor
             </Typography>
           </Paper>
-        </Grid>
-        <Grid xs={12} md={6}>
+        </Box>
+        <Box sx={{ flex: 1 }}>
           <Paper sx={{ p: 3, textAlign: 'center' }}>
             <Typography variant="h6" gutterBottom>
               Track Your Progress
@@ -28,8 +29,8 @@ const Dashboard: React.FC = () => {
               See how your skills improve over time
             </Typography>
           </Paper>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
     </Container>
   );
 };
