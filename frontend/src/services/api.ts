@@ -1,5 +1,7 @@
+// frontend/src/services/api.ts - Updated with Authentication
 import axios from 'axios';
 import { ArtworkSubmission } from '../types';
+import { auth } from './firebase';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -9,6 +11,28 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Add auth token to requests
+api.interceptors.request.use(async (config) => {
+  const user = auth.currentUser;
+  if (user) {
+    const token = await user.getIdToken();
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Handle auth errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid - could redirect to login
+      console.warn('Authentication error:', error.response.data);
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const artAPI = {
   analyzeArtwork: async (file: File, notes?: string): Promise<ArtworkSubmission> => {
@@ -26,6 +50,12 @@ export const artAPI = {
     const response = await api.get('/art/history');
     return response.data.artworks;
   },
+
+  getPublicGallery: async (): Promise<any[]> => {
+    // This endpoint doesn't require auth
+    const response = await api.get('/art/public');
+    return response.data.artworks;
+  },
 };
 
 export const userAPI = {
@@ -38,3 +68,5 @@ export const userAPI = {
     await api.post('/user/progress', progressData);
   },
 };
+
+export default api;
