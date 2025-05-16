@@ -1,11 +1,19 @@
+// backend/src/app.ts - Updated with Firebase
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 
-// Load environment variables
+// Load environment variables first
 dotenv.config();
+
+// Initialize Firebase Admin
+import initializeFirebase from './config/firebase';
+initializeFirebase();
+
+// Import middleware
+import { errorHandler, notFound } from './middleware/errorHandler';
 
 // Import routes
 import artRoutes from './routes/art';
@@ -26,30 +34,25 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    firebase: 'initialized'
+  });
 });
 
 // Routes
 app.use('/api/art', artRoutes);
 app.use('/api/user', userRoutes);
 
-// Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Error:', err);
-  res.status(err.status || 500).json({
-    error: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
-});
-
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
+// Error handling
+app.use(notFound);
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔥 Firebase Admin: initialized`);
 });
 
 export default app;

@@ -1,10 +1,21 @@
+// backend/src/services/ai.ts - Updated with User Context
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function analyzeArtwork(imageUrl: string, userNotes: string = ''): Promise<any> {
+interface UserContext {
+  userId: string;
+  userEmail: string;
+  timestamp: string;
+}
+
+export async function analyzeArtwork(
+  imageUrl: string, 
+  userNotes: string = '', 
+  userContext?: UserContext
+): Promise<any> {
   try {
     const prompt = `You are an expert art instructor analyzing a student's artwork. Please provide constructive feedback covering:
 
@@ -15,9 +26,9 @@ export async function analyzeArtwork(imageUrl: string, userNotes: string = ''): 
 5. **Strengths**: What the artist did well
 6. **Next Steps**: 1-2 specific exercises to improve
 
-Additional context from artist: "${userNotes}"
+${userNotes ? `Additional context from artist: "${userNotes}"` : ''}
 
-Please be encouraging but honest, and provide specific rather than general feedback.`;
+Please be encouraging but honest, and provide specific rather than general feedback. Focus on techniques that can help this artist grow.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4-vision-preview",
@@ -34,11 +45,21 @@ Please be encouraging but honest, and provide specific rather than general feedb
       temperature: 0.7
     });
 
-    return {
+    // Create analysis result with user context
+    const analysis = {
       feedback: response.choices[0].message.content,
       timestamp: new Date().toISOString(),
-      model: 'gpt-4-vision-preview'
+      model: 'gpt-4-vision-preview',
+      userContext: userContext ? {
+        userId: userContext.userId,
+        analyzedAt: userContext.timestamp
+      } : undefined,
+      usage: response.usage
     };
+
+    console.log(`AI analysis completed for user: ${userContext?.userEmail || 'anonymous'}`);
+    
+    return analysis;
   } catch (error) {
     console.error('Error analyzing artwork:', error);
     throw new Error('Failed to analyze artwork with AI');
