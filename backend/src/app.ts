@@ -1,4 +1,4 @@
-// backend/src/app.ts - Updated with Assessment Routes
+// backend/src/app.ts - Update to include progress routes
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -19,6 +19,7 @@ import { errorHandler, notFound } from './middleware/errorHandler';
 import artRoutes from './routes/art';
 import userRoutes from './routes/user';
 import assessmentRoutes from './routes/assessment';
+import progressRoutes from './routes/progress'; // Add this line
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,6 +47,7 @@ app.get('/health', (req, res) => {
 app.use('/api/art', artRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/assessment', assessmentRoutes);
+app.use('/api/progress', progressRoutes); // Add this line
 
 // Error handling
 app.use(notFound);
@@ -54,7 +56,6 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🎨 Assessment endpoint: http://localhost:${PORT}/api/assessment/analyze`);
   console.log(`🔥 Firebase Admin: initialized`);
 });
 

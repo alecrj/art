@@ -1,190 +1,168 @@
 // frontend/src/components/Lessons/QuickDrawLesson.tsx
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Paper,
+import React, { useState } from 'react';
+import { 
+  Box, 
+  Typography, 
+  Button, 
+  Card, 
+  CardContent, 
+  Grid, 
   Divider,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Chip,
   Alert
 } from '@mui/material';
-import { Timer, Check, Close } from '@mui/icons-material';
-import { QuickDrawLesson as QuickDrawLessonType } from '../../models/learning/LessonTypes';
+import { Check, Timer, Brush, ArrowForward } from '@mui/icons-material';
 import DrawingCanvas from '../Assessment/DrawingCanvas';
 import AssessmentTimer from '../Assessment/AssessmentTimer';
+import { Lesson } from '../../models/learning/LessonTypes';
 
 interface QuickDrawLessonProps {
-  lesson: QuickDrawLessonType;
-  onComplete: (score: number) => void;
-  onProgress: (progress: number) => void;
-  disabled: boolean;
+  lesson: Lesson;
+  onComplete: (xpEarned: number) => void;
 }
 
-const QuickDrawLesson: React.FC<QuickDrawLessonProps> = ({
-  lesson,
-  onComplete,
-  onProgress,
-  disabled
-}) => {
-  const [isStarted, setIsStarted] = useState(false);
+const QuickDrawLesson: React.FC<QuickDrawLessonProps> = ({ lesson, onComplete }) => {
   const [isDrawing, setIsDrawing] = useState(false);
-  const [isTimeUp, setIsTimeUp] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  // Update progress
-  useEffect(() => {
-    if (!isStarted) {
-      onProgress(0);
-    } else if (isDrawing) {
-      onProgress(30);
-    } else if (isTimeUp) {
-      onProgress(80);
-    }
-  }, [isStarted, isDrawing, isTimeUp, onProgress]);
-
-  // Handle drawing changes
+  const [isComplete, setIsComplete] = useState(false);
+  const [drawingCanvas, setDrawingCanvas] = useState<HTMLCanvasElement | null>(null);
+  
+  // Extract content (with type assertion since we know it's QuickDrawContent)
+  const content = lesson.content as any;
+  
   const handleDrawingChange = (canvas: HTMLCanvasElement) => {
-    canvasRef.current = canvas;
+    setDrawingCanvas(canvas);
   };
-
-  // Handle timer start
+  
   const handleTimerStart = () => {
-    setIsStarted(true);
     setIsDrawing(true);
   };
-
-  // Handle timer complete
+  
   const handleTimerComplete = () => {
     setIsDrawing(false);
-    setIsTimeUp(true);
+    setIsComplete(true);
   };
-
-  // Handle submit
-  const handleSubmit = () => {
-    // In a real app, we would analyze the drawing here
-    // For now, we'll just provide positive feedback
-    setFeedback('Great job! Your circle shows confidence and a good sense of motion. The line quality is expressive!');
-    
-    // Calculate a score (in a real app, this would be based on AI analysis)
-    const score = Math.floor(Math.random() * 5) + 5; // 5-10 points
-    
-    // Complete the lesson
-    setTimeout(() => {
-      onComplete(score);
-    }, 2000);
+  
+  const handleComplete = () => {
+    onComplete(lesson.xpReward);
   };
-
+  
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Instruction */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          {lesson.promptText}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          You have {lesson.timeLimit} seconds to complete this exercise.
-        </Typography>
-      </Box>
-
-      {/* Example Image (if available) */}
-      {lesson.exampleImageUrl && (
-        <Box sx={{ mb: 3, textAlign: 'center' }}>
-          <Typography variant="subtitle2" gutterBottom>
-            Example:
+    <Box>
+      {/* Instructions */}
+      <Box sx={{ mb: 4 }}>
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Typography variant="body1">
+            {content.instructions}
           </Typography>
-          <img
-            src={lesson.exampleImageUrl}
-            alt="Example"
-            style={{
-              maxWidth: '100%',
-              maxHeight: 200,
-              borderRadius: 8,
-              border: '1px solid #e0e0e0'
-            }}
-          />
-        </Box>
-      )}
-
+        </Alert>
+        
+        <Grid container spacing={3}>
+          {/* Success Criteria */}
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" gutterBottom>
+              Success Criteria
+            </Typography>
+            <List dense>
+              {content.successCriteria.map((criteria: string, index: number) => (
+                <ListItem key={index}>
+                  <ListItemIcon>
+                    <Check color="success" />
+                  </ListItemIcon>
+                  <ListItemText primary={criteria} />
+                </ListItem>
+              ))}
+            </List>
+          </Grid>
+          
+          {/* Examples */}
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" gutterBottom>
+              Examples
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              {content.examples.map((example: any, index: number) => (
+                <Box key={index} sx={{ textAlign: 'center' }}>
+                  <img 
+                    src="https://via.placeholder.com/150" // Placeholder for now
+                    alt={example.caption}
+                    style={{ width: 120, height: 120, border: '1px solid #ddd', borderRadius: 4 }}
+                  />
+                  <Typography variant="caption" display="block">
+                    {example.caption}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Grid>
+        </Grid>
+      </Box>
+      
       <Divider sx={{ my: 3 }} />
-
+      
       {/* Drawing Area */}
       <Box sx={{ textAlign: 'center' }}>
-        {!isStarted ? (
-          <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Your Drawing
+        </Typography>
+        
+        <Box sx={{ mb: 3 }}>
+          <Chip 
+            icon={<Timer />} 
+            label={`Time limit: ${content.timeLimit} seconds`}
+            color="primary"
+            variant="outlined"
+          />
+        </Box>
+        
+        <Box sx={{ mb: 3 }}>
+          <AssessmentTimer
+            duration={content.timeLimit}
+            onStart={handleTimerStart}
+            onComplete={handleTimerComplete}
+            autoStart={false}
+            disabled={isComplete}
+          />
+        </Box>
+        
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+          <DrawingCanvas
+            onDrawingChange={handleDrawingChange}
+            disabled={!isDrawing && isComplete}
+            width={400}
+            height={400}
+          />
+        </Box>
+        
+        {!isDrawing && !isComplete && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Click the timer to start your {content.timeLimit}-second drawing exercise!
+          </Typography>
+        )}
+        
+        {isComplete && (
+          <Box sx={{ mt: 3 }}>
+            <Alert severity="success" sx={{ mb: 3 }}>
+              <Typography variant="body1">
+                Great job completing this exercise! You've earned {lesson.xpReward} XP.
+              </Typography>
+            </Alert>
+            
             <Button
               variant="contained"
+              color="primary"
               size="large"
-              onClick={() => setIsStarted(true)}
-              disabled={disabled}
+              onClick={handleComplete}
+              endIcon={<ArrowForward />}
             >
-              Start Drawing
+              Continue to Next Lesson
             </Button>
           </Box>
-        ) : (
-          <Box sx={{ mb: 3 }}>
-            <AssessmentTimer
-              duration={lesson.timeLimit}
-              onStart={handleTimerStart}
-              onComplete={handleTimerComplete}
-              autoStart={true}
-              disabled={disabled || isTimeUp}
-            />
-          </Box>
-        )}
-
-        <DrawingCanvas
-          onDrawingChange={handleDrawingChange}
-          disabled={disabled || !isDrawing && !isStarted}
-          width={300}
-          height={300}
-        />
-
-        {isTimeUp && !feedback && (
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            onClick={handleSubmit}
-            sx={{ mt: 3 }}
-            disabled={disabled}
-          >
-            Submit Drawing
-          </Button>
-        )}
-
-        {feedback && (
-          <Alert severity="success" sx={{ mt: 3, textAlign: 'left' }}>
-            {feedback}
-          </Alert>
         )}
       </Box>
-
-      {/* Success Criteria */}
-      {isStarted && (
-        <Paper sx={{ mt: 3, p: 2, bgcolor: 'background.default' }}>
-          <Typography variant="subtitle2" gutterBottom>
-            Success Criteria:
-          </Typography>
-          <Box>
-            {lesson.successCriteria.map((criterion, index) => (
-              <Box 
-                key={index}
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center',
-                  mb: 1 
-                }}
-              >
-                <Check color="success" sx={{ mr: 1, fontSize: 16 }} />
-                <Typography variant="body2">
-                  {criterion}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Paper>
-      )}
     </Box>
   );
 };

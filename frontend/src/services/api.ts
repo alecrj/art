@@ -1,4 +1,4 @@
-// frontend/src/services/api.ts - Updated with Authentication
+// frontend/src/services/api.ts - Add progress endpoints
 import axios from 'axios';
 import { ArtworkSubmission } from '../types';
 import { auth } from './firebase';
@@ -67,6 +67,23 @@ export const userAPI = {
   updateProgress: async (progressData: any): Promise<void> => {
     await api.post('/user/progress', progressData);
   },
+};
+
+// Add progress API endpoints
+export const progressAPI = {
+  getUserProgress: async (): Promise<any> => {
+    const response = await api.get('/progress/user');
+    return response.data.progress;
+  },
+  
+  updateProgress: async (progressData: any): Promise<void> => {
+    await api.post('/progress/update', progressData);
+  },
+  
+  getPathProgress: async (pathId: string): Promise<any> => {
+    const response = await api.get(`/progress/path/${pathId}`);
+    return response.data.path;
+  }
 };
 
 export default api;

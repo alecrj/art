@@ -1,4 +1,4 @@
-// frontend/src/App.tsx
+// frontend/src/App.tsx - Update to include ProgressProvider
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -7,6 +7,7 @@ import { Container } from '@mui/material';
 
 // Auth Components
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ProgressProvider } from './contexts/ProgressContext'; // Add this line
 import LoginForm from './components/Auth/LoginForm';
 import SignupForm from './components/Auth/SignupForm';
 
@@ -17,7 +18,7 @@ import Upload from './pages/Upload/Upload';
 import Progress from './pages/Progress/Progress';
 import Profile from './pages/Profile/Profile';
 import Assessment from './pages/Assessment/Assessment';
-import LearningPath from './pages/Learning/LearningPath';
+import LearningPath from './pages/Learning/LearningPath'; // Add this if not already imported
 
 const theme = createTheme({
   palette: {
@@ -57,6 +58,7 @@ const AppContent: React.FC = () => {
         <Route path="/progress" element={<Progress />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/learning-path/:pathId" element={<LearningPath />} />
+        <Route path="/learning-path/:pathId/lesson/:lessonId" element={<LearningPath />} />
       </Routes>
     </Router>
   );
@@ -67,7 +69,9 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <AppContent />
+        <ProgressProvider>
+          <AppContent />
+        </ProgressProvider>
       </AuthProvider>
     </ThemeProvider>
   );

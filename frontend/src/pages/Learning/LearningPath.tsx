@@ -1,281 +1,348 @@
-// frontend/src/pages/Learning/LearningPath.tsx
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Container,
-  Typography,
-  Box,
-  Paper,
-  Grid,
-  Card,
-  CardContent,
-  CardActionArea,
-  Button,
-  Chip,
+// frontend/src/pages/Learning/LearningPath.tsx - Update to use progress
+import React, { useEffect, useState } from 'react';
+import { 
+  Container, 
+  Typography, 
+  Box, 
+  Card, 
+  CardContent, 
+  Button, 
+  Grid, 
+  LinearProgress,
+  Stepper,
+  Step,
+  StepLabel,
+  StepButton,
   Avatar,
-  Divider,
-  LinearProgress
+  Chip
 } from '@mui/material';
-import {
-  School,
-  Lock,
-  CheckCircle,
-  Star,
+import { 
+  Check, 
+  Lock, 
+  PlayArrow,
   ArrowBack
 } from '@mui/icons-material';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useProgress } from '../../contexts/ProgressContext';
+import LessonContainer from '../../components/Lessons/LessonContainer';
+import api from '../../services/api';
 
-// Import learning path data
-import { foundationBuilderPath } from '../../data/foundationPath';
-import { Lesson, LearningPath as LearningPathType } from '../../models/learning/LessonTypes';
+// Import Foundation Path Data
+import { foundationPath } from '../../data/foundationPath';
 
-// Mock user progress
-const mockUserProgress = {
-  userId: 'user123',
-  currentPathId: 'foundation_builder',
-  completedLessons: [],
-  currentStreak: 0,
-  lastPracticeDate: '',
-  totalXP: 0,
-  level: 1,
-  skillProgress: {}
-};
+interface Lesson {
+  id: string;
+  title: string;
+  description: string;
+  type: 'quickDraw' | 'multipleChoice' | 'realPractice';
+  xpReward: number;
+  content: any;
+}
 
-const LearningPathPage: React.FC = () => {
-  const { pathId } = useParams<{ pathId: string }>();
+interface LearningPathData {
+  id: string;
+  title: string;
+  description: string;
+  level: string;
+  lessons: Lesson[];
+}
+
+const LearningPath: React.FC = () => {
+  const { pathId, lessonId } = useParams<{ pathId: string; lessonId: string }>();
+  const { userProgress, completeLesson, startLesson } = useProgress();
   const navigate = useNavigate();
-  const [selectedPath, setSelectedPath] = useState<LearningPathType | null>(null);
-  const [userProgress, setUserProgress] = useState(mockUserProgress);
-  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
-
-  // Fetch path data
+  
+  const [path, setPath] = useState<LearningPathData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
+  const [pathProgress, setPathProgress] = useState<any>(null);
+  
+  // Load path data
   useEffect(() => {
-    // In a real app, we would fetch from API
-    // For now, use our mock data
-    if (pathId === 'foundation_builder') {
-      setSelectedPath(foundationBuilderPath);
-    }
-  }, [pathId]);
-
-  // Calculate path completion
-  const completionPercentage = selectedPath
-    ? (userProgress.completedLessons.filter(id => 
-        selectedPath.lessons.some(lesson => lesson.id === id)
-      ).length / selectedPath.lessons.length) * 100
-    : 0;
-
-  // Handle lesson selection
-  const handleLessonSelect = (lesson: Lesson) => {
-    setSelectedLesson(lesson);
-  };
-
-  // Handle lesson completion
-  const handleLessonComplete = (lessonId: string, score: number) => {
-    // Update user progress
-    const updatedProgress = {
-      ...userProgress,
-      completedLessons: [...userProgress.completedLessons, lessonId],
-      totalXP: userProgress.totalXP + score,
-      lastPracticeDate: new Date().toISOString()
+    if (!pathId) return;
+    
+    const fetchPath = async () => {
+      setLoading(true);
+      try {
+        // In production, we'd load this from the API
+        // For now, we'll use the mock data for foundation path
+        let pathData;
+        
+        if (pathId === 'foundation_builder') {
+          pathData = foundationPath;
+        } else {
+          // Fetch from API when we have more paths
+          try {
+            const response = await api.get(`/learning-paths/${pathId}`);
+            pathData = response.data.path;
+          } catch (error) {
+            console.error('Failed to load path:', error);
+            // Fallback to foundation path
+            pathData = foundationPath;
+          }
+        }
+        
+        setPath(pathData);
+        
+        // If we have a lesson ID, set it as active
+        if (lessonId) {
+          const lesson = pathData.lessons.find((l: Lesson) => l.id === lessonId);
+          if (lesson) {
+            setActiveLesson(lesson);
+            // Mark as started
+            startLesson(pathId, lessonId);
+          }
+        }
+        
+        // Get progress for this path
+        if (userProgress?.activePaths?.[pathId]) {
+          setPathProgress(userProgress.activePaths[pathId]);
+        } else {
+          setPathProgress({
+            id: pathId,
+            title: pathData.title,
+            lessonsCompleted: 0,
+            totalLessons: pathData.lessons.length,
+            xpEarned: 0,
+            lessons: {}
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load path:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     
-    setUserProgress(updatedProgress);
-    setSelectedLesson(null);
+    fetchPath();
+  }, [pathId, lessonId, userProgress, startLesson]);
+  
+  // Handle lesson completion
+  const handleLessonComplete = async (xpEarned: number) => {
+    if (!pathId || !activeLesson) return;
     
-    // In a real app, we would save this to backend
-    console.log('Lesson completed:', lessonId, 'Score:', score);
+    // Update progress
+    await completeLesson(pathId, activeLesson.id, xpEarned);
+    
+    // Back to path overview
+    setActiveLesson(null);
+    navigate(`/learning-path/${pathId}`);
   };
-
-  // Exit lesson view
-  const handleExitLesson = () => {
-    setSelectedLesson(null);
-  };
-
-  // Check if a lesson is unlocked
-  const isLessonUnlocked = (lesson: Lesson, index: number) => {
+  
+  // Determine if a lesson is unlocked
+  const isLessonUnlocked = (index: number) => {
     if (index === 0) return true;
     
-    // If previous lesson is completed, unlock this one
-    const prevLesson = selectedPath?.lessons[index - 1];
-    return prevLesson && userProgress.completedLessons.includes(prevLesson.id);
+    if (!pathProgress) return false;
+    
+    // Check if previous lesson is completed
+    const prevLesson = path?.lessons[index - 1];
+    return prevLesson && pathProgress.lessons[prevLesson.id]?.completed;
   };
-
-  // Check if a lesson is completed
-  const isLessonCompleted = (lessonId: string) => {
-    return userProgress.completedLessons.includes(lessonId);
-  };
-
-  // If no path is selected or loading
-  if (!selectedPath) {
+  
+  if (loading) {
     return (
-      <Container sx={{ py: 4 }}>
-        <Typography variant="h5">Loading learning path...</Typography>
-        <LinearProgress sx={{ mt: 2 }} />
-      </Container>
-    );
-  }
-
-  // If a lesson is selected, show lesson view
-  if (selectedLesson) {
-    return (
-      <Container sx={{ py: 4 }}>
-        <Box sx={{ mb: 3 }}>
-          <Button
-            startIcon={<ArrowBack />}
-            onClick={handleExitLesson}
-          >
-            Back to {selectedPath.title}
-          </Button>
-        </Box>
-        
-        {/* Render lesson component from LessonContainer */}
-        <Typography variant="h6">
-          This is where we would render the LessonContainer component
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <LinearProgress />
+        <Typography variant="h6" sx={{ mt: 2 }}>
+          Loading learning path...
         </Typography>
-        <Paper sx={{ p: 3, mt: 2 }}>
-          <Typography variant="body1">
-            In a real implementation, this would render the LessonContainer component with the selected lesson data.
-          </Typography>
-          <Button 
-            variant="contained" 
-            onClick={() => handleLessonComplete(selectedLesson.id, selectedLesson.xpReward)}
-            sx={{ mt: 2 }}
-          >
-            Simulate Lesson Completion
-          </Button>
-        </Paper>
       </Container>
     );
   }
-
+  
+  if (!path) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Typography variant="h6">
+          Learning path not found
+        </Typography>
+        <Button 
+          variant="contained" 
+          onClick={() => navigate('/')}
+          sx={{ mt: 2 }}
+        >
+          Back to Dashboard
+        </Button>
+      </Container>
+    );
+  }
+  
+  // If we have an active lesson, show the lesson container
+  if (activeLesson) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Button 
+          startIcon={<ArrowBack />}
+          onClick={() => {
+            setActiveLesson(null);
+            navigate(`/learning-path/${pathId}`);
+          }}
+          sx={{ mb: 2 }}
+        >
+          Back to Learning Path
+        </Button>
+        
+        <LessonContainer 
+          lesson={activeLesson}
+          onComplete={handleLessonComplete}
+        />
+      </Container>
+    );
+  }
+  
+  // Calculate progress percentage
+  const lessonsCompleted = pathProgress?.lessonsCompleted || 0;
+  const totalLessons = path.lessons.length;
+  const progressPercentage = totalLessons > 0 ? (lessonsCompleted / totalLessons) * 100 : 0;
+  
   return (
-    <Container sx={{ py: 4 }}>
-      {/* Path Header */}
-      <Paper sx={{ p: 3, mb: 4, borderRadius: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Avatar
-            sx={{ 
-              width: 60, 
-              height: 60, 
-              bgcolor: selectedPath.color,
-              mr: 2 
-            }}
-          >
-            <School sx={{ fontSize: 32 }} />
-          </Avatar>
-          <Box>
-            <Typography variant="h4" component="h1">
-              {selectedPath.title}
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              {selectedPath.description}
-            </Typography>
-          </Box>
-        </Box>
-        
-        <Divider sx={{ my: 2 }} />
-        
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              Your progress
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <LinearProgress
-                variant="determinate"
-                value={completionPercentage}
-                sx={{ width: 200, mr: 2, height: 8, borderRadius: 4 }}
-              />
-              <Typography variant="body2">
-                {Math.round(completionPercentage)}%
+    <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <Button 
+        startIcon={<ArrowBack />}
+        onClick={() => navigate('/')}
+        sx={{ mb: 2 }}
+      >
+        Back to Dashboard
+      </Button>
+      
+      <Card sx={{ mb: 4 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+            <Box>
+              <Typography variant="h4" gutterBottom>
+                {path.title}
               </Typography>
+              <Typography variant="body1" color="text.secondary">
+                {path.description}
+              </Typography>
+              <Chip 
+                label={path.level} 
+                color="primary" 
+                size="small" 
+                sx={{ mt: 1 }}
+              />
+            </Box>
+            
+            <Box sx={{ textAlign: 'right' }}>
+              <Typography variant="h6">
+                {lessonsCompleted} / {totalLessons} Lessons
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {pathProgress?.xpEarned || 0} XP Earned
+              </Typography>
+              
+              <LinearProgress 
+                variant="determinate" 
+                value={progressPercentage} 
+                sx={{ mt: 1, height: 8, borderRadius: 4, width: 200 }}
+              />
             </Box>
           </Box>
-          
-          <Box sx={{ textAlign: 'right' }}>
-            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
-              <Star sx={{ color: 'primary.main', mr: 1 }} />
-              {userProgress.totalXP} XP
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Level {userProgress.level}
-            </Typography>
-          </Box>
-        </Box>
-      </Paper>
-
-      {/* Lessons List */}
-      <Grid container spacing={3}>
-        {selectedPath.lessons.map((lesson, index) => {
-          const isUnlocked = isLessonUnlocked(lesson, index);
-          const isCompleted = isLessonCompleted(lesson.id);
+        </CardContent>
+      </Card>
+      
+      <Typography variant="h5" gutterBottom>
+        Lessons
+      </Typography>
+      
+      <Stepper 
+        nonLinear 
+        activeStep={-1}
+        sx={{ 
+          flexDirection: { xs: 'column', md: 'row' }, 
+          alignItems: 'flex-start',
+          mb: 4
+        }}
+      >
+        {path.lessons.map((lesson, index) => {
+          const isCompleted = pathProgress?.lessons?.[lesson.id]?.completed;
+          const isUnlocked = isLessonUnlocked(index);
           
           return (
-            <Grid item xs={12} sm={6} md={4} key={lesson.id}>
-              <Card 
-                sx={{ 
-                  height: '100%',
-                  opacity: isUnlocked ? 1 : 0.7,
-                  border: isCompleted ? '2px solid #4caf50' : undefined
+            <Step key={lesson.id} sx={{ width: '100%', mb: { xs: 2, md: 0 } }}>
+              <StepButton
+                onClick={() => {
+                  if (isUnlocked) {
+                    setActiveLesson(lesson);
+                    navigate(`/learning-path/${pathId}/lesson/${lesson.id}`);
+                  }
                 }}
+                disabled={!isUnlocked}
+                sx={{
+                  width: '100%',
+                  '& .MuiStepLabel-iconContainer': {
+                    paddingRight: 2
+                  }
+                }}
+                icon={
+                  isCompleted ? (
+                    <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>
+                      <Check sx={{ fontSize: 18 }} />
+                    </Avatar>
+                  ) : isUnlocked ? (
+                    <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
+                      <PlayArrow sx={{ fontSize: 18 }} />
+                    </Avatar>
+                  ) : (
+                    <Avatar sx={{ bgcolor: 'grey.400', width: 32, height: 32 }}>
+                      <Lock sx={{ fontSize: 18 }} />
+                    </Avatar>
+                  )
+                }
               >
-                <CardActionArea
-                  disabled={!isUnlocked}
-                  onClick={() => isUnlocked && handleLessonSelect(lesson)}
-                  sx={{ height: '100%' }}
-                >
-                  <CardContent>
-                    <Box sx={{ 
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      mb: 2
-                    }}>
-                      <Typography variant="h6" component="h2">
-                        {lesson.title}
-                      </Typography>
-                      
-                      {isCompleted ? (
-                        <CheckCircle color="success" />
-                      ) : !isUnlocked ? (
-                        <Lock color="disabled" />
-                      ) : (
-                        <Chip 
-                          label={`${lesson.xpReward} XP`} 
-                          size="small"
-                          color="primary"
-                        />
-                      )}
-                    </Box>
-                    
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      {lesson.description}
-                    </Typography>
-                    
-                    <Box sx={{ 
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      mt: 'auto'
-                    }}>
-                      <Chip
-                        label={lesson.difficulty}
-                        size="small"
-                        variant="outlined"
-                      />
-                      
-                      <Typography variant="caption" color="text.secondary">
-                        {Math.floor(lesson.duration / 60)} min
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            </Grid>
+                <Box sx={{ textAlign: 'left', p: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: isCompleted ? 'bold' : 'normal' }}>
+                    {lesson.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {lesson.description}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5, gap: 1 }}>
+                    <Chip 
+                      label={lesson.type === 'quickDraw' ? 'Quick Draw' : 
+                             lesson.type === 'multipleChoice' ? 'Multiple Choice' : 
+                             'Real Practice'} 
+                      size="small" 
+                      variant="outlined"
+                      color={isCompleted ? 'success' : 'default'}
+                    />
+                    <Chip 
+                      label={`${lesson.xpReward} XP`} 
+                      size="small"
+                      variant="outlined"
+                      color={isCompleted ? 'success' : 'default'}
+                    />
+                  </Box>
+                </Box>
+              </StepButton>
+            </Step>
           );
         })}
-      </Grid>
+      </Stepper>
+      
+      <Box sx={{ textAlign: 'center', mt: 4 }}>
+        {progressPercentage === 100 ? (
+          <Box>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              🎉 You've completed all lessons in this path! 🎉
+            </Typography>
+            <Button 
+              variant="contained" 
+              size="large"
+              onClick={() => navigate('/')}
+            >
+              Back to Dashboard
+            </Button>
+          </Box>
+        ) : (
+          <Typography variant="body1" color="text.secondary">
+            Complete all lessons to master this path!
+          </Typography>
+        )}
+      </Box>
     </Container>
   );
 };
 
-export default LearningPathPage;
+export default LearningPath;
