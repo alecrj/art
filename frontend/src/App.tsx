@@ -17,6 +17,7 @@ import Upload from './pages/Upload/Upload';
 import Progress from './pages/Progress/Progress';
 import Profile from './pages/Profile/Profile';
 import Assessment from './pages/Assessment/Assessment';
+import LearningPath from './pages/Learning/LearningPath';
 
 const theme = createTheme({
   palette: {
@@ -55,6 +56,7 @@ const AppContent: React.FC = () => {
         <Route path="/upload" element={<Upload />} />
         <Route path="/progress" element={<Progress />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/learning-path/:pathId" element={<LearningPath />} />
       </Routes>
     </Router>
   );

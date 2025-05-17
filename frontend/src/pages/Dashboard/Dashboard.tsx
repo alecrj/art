@@ -2,7 +2,7 @@
 import React from 'react';
 import { Container, Typography, Box, Paper, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { Assessment, Upload } from '@mui/icons-material';
+import { Assessment, Upload, School, LocalFireDepartment } from '@mui/icons-material';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -33,26 +33,43 @@ const Dashboard: React.FC = () => {
             </Button>
           </Paper>
         </Box>
+        
         <Box sx={{ flex: 1 }}>
-          <Paper sx={{ p: 3, textAlign: 'center' }}>
-            <Upload sx={{ fontSize: 48, color: 'secondary.main', mb: 2 }} />
+          <Paper sx={{ p: 3, textAlign: 'center', border: '2px solid', borderColor: 'success.main' }}>
+            <School sx={{ fontSize: 48, color: 'success.main', mb: 2 }} />
             <Typography variant="h6" gutterBottom>
-              Upload Your Artwork
+              Start Foundation Builder
             </Typography>
             <Typography color="text.secondary" sx={{ mb: 3 }}>
-              Get personalized feedback from our AI art instructor
+              Quick, fun exercises to build your art confidence
             </Typography>
             <Button
-              variant="outlined"
+              variant="contained"
               size="large"
-              onClick={() => navigate('/upload')}
+              onClick={() => navigate('/learning-path/foundation_builder')}
               fullWidth
+              color="success"
             >
-              Upload Art
+              Start Learning 🚀
             </Button>
           </Paper>
         </Box>
       </Box>
+      
+      {/* Daily streak reminder */}
+      <Paper sx={{ p: 3, mt: 3, bgcolor: '#FFF9C4', borderLeft: '4px solid #FBC02D' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <LocalFireDepartment sx={{ color: '#F57F17', fontSize: 40, mr: 2 }} />
+          <Box>
+            <Typography variant="h6">
+              Keep your daily art streak alive!
+            </Typography>
+            <Typography variant="body2">
+              Just 5 minutes a day will transform your art skills. Complete one exercise to maintain your streak.
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
     </Container>
   );
 };

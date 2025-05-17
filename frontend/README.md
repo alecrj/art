@@ -1,46 +1,85 @@
-# Getting Started with Create React App
+# AI Art Teacher - The Duolingo of Art
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 🎯 Project Vision
+**Create an addictive, personalized art learning app that makes everyone feel like an artist from day one**
 
-## Available Scripts
+Core Principle: **Meet users where they are, not where we think they should be**
 
-In the project directory, you can run:
+## 🌟 Key Features
 
-### `npm start`
+### **Smart Onboarding (60 seconds to addiction)**
+- "Draw anything for 30 seconds" assessment  ✅
+- AI finds something genuinely positive to say ✅
+- Instant "Welcome, Artist!" moment ✅
+- Skill-based path assignment (Beginner/Intermediate/Advanced) ✅
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### **Personalized Learning Paths**
+- **Foundation Builder** (Beginners): Confidence-building basics
+- **Skill Sharpener** (Intermediate): Targeted technique improvement  
+- **Master Class** (Advanced): Style exploration and mastery
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### **Daily Micro-Lessons**
+- 30-60 second video instruction
+- 3-5 minute practice session
+- Instant AI feedback with celebration + one small improvement
+- Progressive difficulty that adapts to user performance
 
-### `npm test`
+### **Social & Gamification**
+- Smart streak system (not just participation)
+- Art twins (skill-matched peers)
+- Community challenges with style variety
+- Portfolio building with guided projects
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🔧 Tech Stack
 
-### `npm run build`
+### Frontend (React TypeScript)
+- Material-UI components ✅
+- React Router for navigation ✅
+- Firebase Auth integration ✅
+- Responsive design (mobile-first) ✅
+- Drawing canvas for assessments ✅
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Backend (Node.js/Express)
+- TypeScript for type safety ✅
+- Firebase Admin SDK ✅
+- OpenAI GPT-4 Vision for analysis ✅
+- Smart assessment algorithms ✅
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### AI Features
+- Dynamic skill assessment ✅
+- Personalized feedback generation ✅
+- Adaptive difficulty scaling
+- Style-aware analysis (anime, realism, abstract, etc.) ✅
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🚀 Current Status
+**Phase: Assessment Engine Completed, Building Learning Paths**
 
-### `npm run eject`
+Authentication system working ✅
+Basic upload/analysis working ✅
+Smart assessment system working ✅
+30-second drawing assessment ✅
+AI skill detection ✅
+Learning path assignment ✅
+Next up: Learning path infrastructure and lesson content
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## 📱 User Journey
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. **Download** → "Draw anything for 30 seconds" ✅
+2. **Assessment** → AI analyzes and finds positives ✅
+3. **Path Selection** → Automatic placement in appropriate track ✅
+4. **First Lesson** → Immediate micro-win
+5. **Daily Habit** → 5-minute sessions with visible progress
+6. **Community** → Share progress, find art twins
+7. **Mastery** → Portfolio-worthy pieces, teaching others
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## 🎨 Success Metrics
+- **Week 1**: Users can draw recognizable things they're proud of
+- **Month 1**: Users show their art to friends/family
+- **Month 3**: Users identify as "the artist friend" in their group
+- **Month 6**: Users teaching others or selling art
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## 📞 Contact
+Solo developer building the future of art education
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+---
+*Making art accessible, addictive, and achievable for everyone*
