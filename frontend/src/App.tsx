@@ -16,6 +16,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import Upload from './pages/Upload/Upload';
 import Progress from './pages/Progress/Progress';
 import Profile from './pages/Profile/Profile';
+import Assessment from './pages/Assessment/Assessment';
 
 const theme = createTheme({
   palette: {
@@ -50,6 +51,7 @@ const AppContent: React.FC = () => {
       <Navigation />
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/assessment" element={<Assessment />} />
         <Route path="/upload" element={<Upload />} />
         <Route path="/progress" element={<Progress />} />
         <Route path="/profile" element={<Profile />} />
